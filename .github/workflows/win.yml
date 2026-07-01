@@ -1,0 +1,37 @@
+name: Nebula Engine - Windows Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >
+            mingw-w64-x86_64-gcc
+            make
+
+      - name: Add MinGW to PATH
+        shell: bash
+        run: echo "/mingw64/bin" >> $GITHUB_PATH
+
+      - name: Build Nebula (Windows)
+        shell: bash
+        run: |
+          mkdir -p build
+          gcc platform/windows_main.c core/*.c game/*.c -o build/nebula.exe -O2
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebula-windows-build
+          path: build/nebula.exe
