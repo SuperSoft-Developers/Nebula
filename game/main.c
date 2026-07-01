@@ -1,10 +1,10 @@
 #include "../core/nebula.h"
 #include "../core/input.h"
 #include "../core/renderer.h"
+#include "../core/entity.h"
 
 /*
-    🧱 Sprite simples (8x8 RGB565)
-    Quadrado com "olhos" pra teste visual
+    🧱 Sprite do player
 */
 static const unsigned short playerSpriteData[64] = {
     0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
@@ -17,37 +17,44 @@ static const unsigned short playerSpriteData[64] = {
     0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF
 };
 
-static NebulaSprite player;
+static NebulaSprite playerSprite;
 
-static int playerX = 100;
-static int playerY = 100;
+static NebulaEntity player;
+static NebulaEntity box;
 
 void game_init() {
     nebula_init(400, 240);
     renderer_init(400, 240);
-
     input_init();
 
-    player.w = 8;
-    player.h = 8;
-    player.pixels = playerSpriteData;
+    playerSprite.w = 8;
+    playerSprite.h = 8;
+    playerSprite.pixels = playerSpriteData;
+
+    entity_init(&player, 100, 100, 8, 8);
+    entity_init(&box, 200, 120, 16, 16);
 }
 
 void game_update() {
 
     input_update();
 
-    // 🎮 movimento
-    if (nebulaInput.left)  playerX -= 2;
-    if (nebulaInput.right) playerX += 2;
-    if (nebulaInput.up)    playerY -= 2;
-    if (nebulaInput.down)  playerY += 2;
+    player.vx = 0;
+    player.vy = 0;
 
-    // 🔒 limites simples da tela
-    if (playerX < 0) playerX = 0;
-    if (playerY < 0) playerY = 0;
-    if (playerX > 392) playerX = 392;
-    if (playerY > 232) playerY = 232;
+    if (nebulaInput.left)  player.vx = -2;
+    if (nebulaInput.right) player.vx =  2;
+    if (nebulaInput.up)    player.vy = -2;
+    if (nebulaInput.down)  player.vy =  2;
+
+    entity_move(&player);
+
+    // colisão com box
+    if (entity_collides(&player, &box)) {
+        // simples: volta posição
+        player.x -= player.vx;
+        player.y -= player.vy;
+    }
 
     nebula_update();
 }
@@ -56,7 +63,11 @@ void game_draw() {
 
     renderer_clear();
 
-    nebula_draw_sprite(&player, playerX, playerY);
+    // desenha player
+    nebula_draw_sprite(&playerSprite, player.x, player.y);
+
+    // desenha box (reuse sprite como bloco sólido branco)
+    nebula_draw_sprite(&playerSprite, box.x, box.y);
 
     renderer_present();
 }
