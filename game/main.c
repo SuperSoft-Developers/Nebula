@@ -1,13 +1,19 @@
 #include "../core/nebula.h"
-
-void game_init() {
-    nebula_init(400, 240);
-}
+#include "../core/input.h"
 
 void game_update() {
-    nebula_update();
-}
 
-void game_draw() {
-    nebula_draw();
+    if (nebulaInput.left) {
+        // move player left
+    }
+
+    if (nebulaInput.right) {
+        // move player right
+    }
+
+    if (nebulaInput.a) {
+        // pular / ação
+    }
+
+    nebula_update();
 }
